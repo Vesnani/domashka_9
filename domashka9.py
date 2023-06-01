@@ -19,31 +19,31 @@ def main():
 
     @input_error
     def handle_add():
-        print('Enter contact name and phone with space: ')
-        contact_info = input().split()
-        contact_name = contact_info[0]
-        contact_phone = contact_info[1]
+        contact_name = input('Enter contact name: ')
+        contact_phone = input('Enter contact phone: ')
         contacts[contact_name] = contact_phone
         return "Contact added successfully"
 
     @input_error
     def handle_change():
-        print('Enter contact name you want to change and new phone with space: ')
-        contact_info = input().split()
-        contact_name = contact_info[0]
-        contact_phone = contact_info[1]
-        contacts[contact_name] = contact_phone
-        return "Contact phone number updated successfully"
+        contact_name = input('Enter contact name you want to change: ')
+        if contact_name in contacts:
+            contact_phone = input('Enter new contact phone: ')
+            contacts[contact_name] = contact_phone
+            return "Contact phone number updated successfully"
+        else:
+            return "Contact not found"
 
     @input_error
     def handle_phone():
-        print('Enter contact name: ')
-        contact_name = input()
-        contact_phone = contacts[contact_name]
+        contact_name = input('Enter contact name: ')
+        contact_phone = contacts.get(contact_name, "Contact not found")
         return f"Phone number for {contact_name}: {contact_phone}"
 
     @input_error
     def handle_show_all():
+        if not contacts:
+            return "No contacts found."
         output = "Contacts:\n"
         for contact_name, contact_phone in contacts.items():
             output += f"{contact_name}: {contact_phone}\n"
