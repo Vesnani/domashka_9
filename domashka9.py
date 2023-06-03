@@ -1,88 +1,106 @@
+contacts = {}
+
+def input_error(function):
+    def wrapper(*args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        except KeyError:
+            return 'Wrong name'
+        except ValueError as exception:
+            return exception.args[0]
+        except IndexError:
+            return 'Pls print: name and number'
+        except TypeError:
+            return 'Wrong command.'
+
+    return wrapper
+
+@input_error
+def hello_func():
+    return 'How can I help you?'
+
+@input_error
+def exit_func():
+    return 'good bye'
+
+@input_error
+def add_func(data):
+    name, phone = create_data(data)
+
+    if name in contacts:
+        raise ValueError('This contact already exists.')
+    contacts[name] = phone
+    return f'You added a new contact: {name} with this {phone}.'
+
+@input_error
+def change_func(data):
+    name, phone = create_data(data)
+    if name in contacts:
+        contacts[name] = phone
+        return f'You changed the number to {phone} for {name}.'
+    return 'Use the add command, please.'
+
+@input_error
+def search_func(name):
+    if name.strip() not in contacts:
+        raise ValueError('This contact does not exist.')
+    return contacts.get(name.strip())
+
+@input_error
+def show_func():
+    contacts_list = ''
+    for key, value in contacts.items():
+        contacts_list += f'{key} : {value} \n'
+    return contacts_list
+
+COMMANDS = {
+    'hello': hello_func,
+    'exit': exit_func,
+    'close': exit_func,
+    'good bye': exit_func,
+    'add': add_func,
+    'change': change_func,
+    'show all': show_func,
+    'phone': search_func
+}
+
+def change_input(user_input):
+    new_input = user_input
+    data = ''
+    for key in COMMANDS:
+        if user_input.strip().lower().startswith(key):
+            new_input = key
+            data = user_input[len(new_input):]
+            break
+    if data:
+        return reaction_func(new_input)(data)
+    return reaction_func(new_input)()
+
+def reaction_func(reaction):
+    return COMMANDS.get(reaction, break_func)
+
+def create_data(data):
+    new_data = data.strip().split(" ")
+    name = new_data[0]
+    phone = new_data[1]
+    if name.isnumeric():
+        raise ValueError('Wrong name.')
+    if not phone.isnumeric():
+        raise ValueError('Wrong phone.')
+    return name, phone
+
+def break_func():
+    return 'Wrong enter.'
+
 def main():
-    contacts = {}
-
-    def input_error(func):
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except KeyError:
-                return "Contact not found"
-            except ValueError:
-                return "Invalid input"
-            except IndexError:
-                return "Invalid input"
-        return wrapper
-
-    @input_error
-    def handle_hello():
-        return "How can I help you?"
-
-    @input_error
-    def handle_add():
-        contact_name = input('Enter contact name: ')
-        contact_phone = input('Enter contact phone: ')
-        contacts[contact_name] = contact_phone
-        return "Contact added successfully"
-
-    @input_error
-    def handle_change():
-        contact_name = input('Enter contact name you want to change: ')
-        if contact_name in contacts:
-            contact_phone = input('Enter new contact phone: ')
-            contacts[contact_name] = contact_phone
-            return "Contact phone number updated successfully"
-        else:
-            return "Contact not found"
-
-    @input_error
-    def handle_phone():
-        contact_name = input('Enter contact name: ')
-        contact_phone = contacts.get(contact_name, "Contact not found")
-        return f"Phone number for {contact_name}: {contact_phone}"
-
-    @input_error
-    def handle_show_all():
-        if not contacts:
-            return "No contacts found."
-        output = "Contacts:\n"
-        for contact_name, contact_phone in contacts.items():
-            output += f"{contact_name}: {contact_phone}\n"
-        return output.strip()
-
-    COMMANDS = {
-        'hello': handle_hello,
-        'add': handle_add,
-        'change': handle_change,
-        'phone': handle_phone,
-        'show all': handle_show_all,
-        'good bye': exit,
-        'close': exit,
-        'exit': exit,
-    }
-
-    def parse_command(command):
-        command = command.lower()
-
-        for words in COMMANDS.keys():
-            if words in command:
-                return COMMANDS[words]
-
-        return None
-
     while True:
-        command = input('Enter a command: ')
-        command_handler = parse_command(command)
-
-        if command_handler is None:
-            print('Unknown command!')
-            continue
-
-        if command_handler == exit:
+        user_input = input('Enter command: ')
+        if user_input == 'exit' or user_input == 'close' or user_input == 'good bye':
             print('Good bye!')
             break
 
-        response = command_handler()
-        print(response)
+        result = change_input(user_input)
+        print(result)
 
 if __name__ == '__main__':
     main()
